@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>원신 가챠 계산기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@700&display=swap" rel="stylesheet">
+<style>
+  
+:root{color-scheme:light dark;--bg:light-dark(#faf8fd,#13101c);--card:light-dark(#fff,#1d1829);--ink:light-dark(#1c1830,#ece8f7);--mute:light-dark(#6b6480,#a39cb8);--line:light-dark(#e6e1ef,#2f2840);--sky:#271d40;--sky2:#3a2c5c;--pink:#d64f8a;--blue:#4a9be0;--ok:#2e9e6a;--warn:#d9822b;--bad:#d14a4a}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Noto Sans KR",system-ui,sans-serif;overflow-x:clip}
+h1,h2{font-variant-numeric:tabular-nums,serif;line-height:1.1;margin:0;text-wrap:balance}
+.band{padding:clamp(24px,4vw,48px) max(5vw,16px)}
+.wrap{max-width:1180px;margin:0 auto}
+.sky{background:linear-gradient(rgba(39,29,64,.75),rgba(39,29,64,.9)),url('flins.jpg') center/cover;color:#f3eefc}
+.sky h1{font-size:clamp(28px,4vw,44px)}
+.sky .sub{color:#c9bfe0;margin:.4em 0 1.2em}
+.hero{display:grid;grid-template-columns:minmax(0,280px) minmax(0,1fr);gap:24px;align-items:stretch}
+.big{font-size:clamp(48px,8vw,84px);font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.big small{font-size:20px;font-weight:500;color:#c9bfe0}
+.kv{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:14px;color:#c9bfe0;font-size:14px}
+.kv b{color:#fff;font-weight:500}
+.fig{position:relative;min-height:240px;background:rgba(255,255,255,.05);border-radius:14px}
+.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+nav{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:4px;overflow-x:auto;padding:0 max(5vw,16px)}
+nav a{flex:none;padding:14px 14px;color:var(--mute);text-decoration:none;font-weight:500;border-bottom:3px solid transparent}
+nav a.on{color:var(--ink);border-color:var(--pink)}
+section{display:none}section.on{display:block}
+h2{font-size:26px;margin-bottom:6px}
+.hint{color:var(--mute);font-size:14px;margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+label{display:block;font-size:14px;color:var(--mute);margin-bottom:4px}
+input,select{font:inherit;font-size:16px;width:100%;min-height:44px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+input[type=checkbox]{width:22px;min-height:22px;accent-color:var(--pink);vertical-align:middle}
+input:focus-visible,select:focus-visible,button:focus-visible,nav a:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+button{font:inherit;min-height:44px;padding:8px 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+button.pri{background:var(--pink);border-color:var(--pink);color:#fff;font-weight:700}
+button.x{min-width:44px;padding:0;color:var(--mute)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.row>div{flex:1 1 140px}
+.chk{display:flex;align-items:center;gap:8px;min-height:44px;color:var(--ink)}
+.plan{display:grid;gap:12px}
+.pb{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:center}
+.chip{display:inline-block;font-size:13px;padding:2px 8px;border-radius:99px;background:var(--line);margin-right:6px;white-space:nowrap}
+.chip.c{background:color-mix(in srgb,var(--pink) 18%,transparent);color:var(--pink)}
+.chip.w{background:color-mix(in srgb,var(--blue) 18%,transparent);color:var(--blue)}
+.pn{font-size:20px;font-weight:700;margin:6px 0 2px}
+.meta{color:var(--mute);font-size:14px}
+.prob{font-size:36px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;border-radius:99px}
+.status{font-size:14px;font-weight:500}
+.list{display:grid;gap:10px}
+.item{display:grid;grid-template-columns:minmax(0,2fr) repeat(4,minmax(0,1fr)) auto;gap:8px;align-items:end}
+.inc{grid-template-columns:auto minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.2fr) minmax(0,1.2fr) auto}
+.sp{grid-template-columns:minmax(0,1.1fr) minmax(0,2fr) minmax(0,1fr) auto}
+.empty{text-align:center;color:var(--mute);padding:28px}
+.months{display:grid;gap:6px;margin-top:12px}
+.mrow{display:grid;grid-template-columns:72px minmax(0,1fr) 110px;gap:10px;align-items:center;font-size:14px}
+.mrow .bar{margin:0;height:14px}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+textarea{width:100%;min-height:120px;font:13px/1.4 ui-monospace,monospace;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.note{font-size:13px;color:var(--mute);margin-top:14px}
+@media(max-width:760px){.hero,.pb{grid-template-columns:1fr}.item,.inc,.sp{grid-template-columns:1fr 1fr}.item>:first-child,.inc>:nth-child(2),.sp>:nth-child(2){grid-column:1/-1}}
+</style>
+</head>
+<body>
+<header class="band sky"><div class="wrap">
+  <h1>원신 가챠 계산기</h1>
+  <p class="sub">보유 재화와 앞으로 들어올 재화로 다음 픽업까지 몇 뽑이 가능한지 계산해요.</p>
+  <div class="hero">
+    <div>
+      <div class="meta" style="color:#c9bfe0">지금 바로 가능한 뽑기</div>
+      <div class="big" id="nowPulls">0<small> 뽑</small></div>
+      <div class="kv" id="nowKv"></div>
+    </div>
+    <div class="fig" id="fig"><svg id="chart" aria-label="날짜별 존버 시 뽑기 횟수 그래프"></svg></div>
+  </div>
+</div></header>
+
+<nav><div class="wrap">
+  <a href="#plan" data-t="plan">플래너</a>
+  <a href="#banners" data-t="banners">픽업 일정</a>
+  <a href="#income" data-t="income">재화 수입</a>
+  <a href="#spend" data-t="spend">과금 기록</a>
+  <a href="#backup" data-t="backup">백업</a>
+</div></nav>
+
+<main class="band"><div class="wrap">
+<section id="s-plan">
+  <h2>내 재화와 천장</h2>
+  <p class="hint">숫자를 바꾸면 바로 다시 계산돼요. 입력값은 이 브라우저에 저장돼요.</p>
+  <div class="grid">
+    <div class="card"><label for="primo">원석</label><input id="primo" type="number" min="0" data-s="inv.primo"></div>
+    <div class="card"><label for="crystal">창세의 결정</label><input id="crystal" type="number" min="0" data-s="inv.crystal"></div>
+    <div class="card"><label for="fate">뒤얽힌 인연</label><input id="fate" type="number" min="0" data-s="inv.fate"></div>
+    <div class="card"><label for="cp">캐릭터 배너 천장 카운트 (0~89)</label><input id="cp" type="number" min="0" max="89" data-s="pity.c">
+      <label class="chk"><input type="checkbox" data-s="pity.cf"> 다음 5성 픽업 확정 </label></div>
+    <div class="card"><label for="wp">무기 배너 천장 카운트 (0~79)</label><input id="wp" type="number" min="0" max="79" data-s="pity.w">
+      <label class="chk"><input type="checkbox" data-s="pity.wf"> 운명의 궤도 포인트 1 있음</label></div>
+    <div class="card"><label for="mode">앞 배너 재화 소비 기준</label>
+      <select id="mode" data-s="mode"><option value="exp">평균 뽑기 횟수 가정</option><option value="worst">최악(천장) 가정</option></select>
+      <label class="chk"><input type="checkbox" data-s="radiance"> 별빛 포착 반영 (픽업 확률 약 55%로 근사)</label></div>
+  </div>
+  <h2 style="margin-top:32px">픽업별 계획</h2>
+  <p class="hint">"계획 추가"로 체크한 배너를 날짜순으로 계산해요. 앞 배너에서 쓴 재화는 뒤 배너에서 빠져요.</p>
+  <div class="plan" id="planList"></div>
+</section>
+
+<section id="s-banners">
+  <h2>픽업 일정</h2>
+  <p class="hint">공식 공지를 보고 직접 추가해 주세요. 목표 개수는 캐릭터면 1=명함, 2=1돌…, 무기면 1=1재련이에요.</p>
+  <div class="list" id="bannerList"></div>
+  <div class="row" style="margin-top:12px"><button class="pri" id="addBanner">+ 픽업 추가</button></div>
+</section>
+
+<section id="s-income">
+  <h2>재화 수입</h2>
+  <p class="hint">기본값은 대략적인 값이에요. 실제 플레이에 맞게 고쳐 주세요. "매월"은 그 달의 날짜, "버전마다"는 기준일부터 42일마다, "한 번"은 그 날짜에 들어와요.</p>
+  <div class="list" id="incomeList"></div>
+  <div class="row" style="margin-top:12px"><button class="pri" id="addIncome">+ 수입 추가</button></div>
+</section>
+
+<section id="s-spend">
+  <h2>과금 기록</h2>
+  <p class="hint" id="spendSum"></p>
+  <div class="list" id="spendList"></div>
+  <div class="row" style="margin-top:12px"><button class="pri" id="addSpend">+ 기록 추가</button></div>
+  <div class="months" id="months"></div>
+</section>
+
+<section id="s-backup">
+  <h2>백업과 복원</h2>
+  <p class="hint">데이터는 이 브라우저에만 저장돼요. 다른 기기로 옮기거나 혹시 모를 때를 대비해 아래 내용을 복사해 메모장에 보관해 두세요.</p>
+  <textarea id="bk" aria-label="백업 데이터"></textarea>
+  <div class="row" style="margin-top:10px"><button id="copyBk">복사</button><button id="loadBk">붙여넣은 내용으로 복원</button><button id="resetAll">전체 초기화</button></div>
+  <p class="note" id="bkMsg"></p>
+</section>
+<p class="note">확률 모델: 캐릭터 5성 기본 0.6%, 74뽑부터 상승, 90뽑 확정. 무기 0.7%, 63뽑부터 상승, 80뽑 확정, 픽업 무기 중 목표는 37.5%, 운명의 궤도 1포인트. 커뮤니티에서 추정한 값이라 실제와 조금 다를 수 있어요.</p>
+</div></main>
+
+<script>
+{
+const KEY='genshinGachaPlanner.v1';
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parse=s=>{const [y,m,d]=(s||'').split('-').map(Number);return y?new Date(y,m-1,d):null};
+const TODAY=parse(ymd(new Date()));
+const addDays=(d,n)=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);
+const dayDiff=(a,b)=>Math.round((b-a)/864e5);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>Math.round(n).toLocaleString('ko-KR');
+const uid=()=>Math.random().toString(36).slice(2,9);
+
+const DEF=()=>({inv:{primo:0,crystal:0,fate:0},pity:{c:0,cf:false,w:0,wf:false},mode:'exp',radiance:true,
+ banners:[{id:uid(),name:'예시 캐릭터 픽업 (지우고 실제 일정을 넣으세요)',type:'c',start:ymd(addDays(TODAY,14)),end:ymd(addDays(TODAY,35)),copies:1,want:true}],
+ income:[
+  {id:uid(),on:true,name:'일일 의뢰',amt:60,unit:'p',per:'daily',when:''},
+  {id:uid(),on:false,name:'공월 축복',amt:90,unit:'p',per:'daily',when:''},
+  {id:uid(),on:true,name:'나선 비경 (대략)',amt:800,unit:'p',per:'monthly',when:'16'},
+  {id:uid(),on:true,name:'환상 극장 (대략)',amt:800,unit:'p',per:'monthly',when:'1'},
+  {id:uid(),on:false,name:'버전 이벤트·점검 보상 (대략)',amt:1600,unit:'p',per:'version',when:ymd(TODAY)}],
+ spend:[]});
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!S.inv)S=DEF();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+
+/* ---------- 확률 계산 ---------- */
+const PC=n=>n<=73?0.006:Math.min(1,0.006+0.06*(n-73));
+const PW=n=>n<=62?0.007:Math.min(1,0.007+0.07*(n-62));
+const cache=new Map();
+// succ[n] = n뽑 안에 목표 개수(m)를 얻을 확률
+function dist(type,pity,flag,m,w){
+ const k=[type,pity,flag,m,w].join();if(cache.has(k))return cache.get(k);
+ const H=type==='c'?90:80,P=type==='c'?PC:PW;
+ const worst=(flag?H:2*H)-pity+(m-1)*2*H;
+ const idx=(c,f,p)=>(c*2+f)*H+p;
+ let cur=new Float64Array(m*2*H);cur[idx(0,flag?1:0,pity)]=1;
+ const succ=[0];let done=0;
+ for(let n=1;n<=worst;n++){
+  const nx=new Float64Array(cur.length);
+  for(let c=0;c<m;c++)for(let f=0;f<2;f++)for(let p=0;p<H;p++){
+   const v=cur[idx(c,f,p)];if(!v)continue;
+   const q=P(p+1);
+   if(q<1)nx[idx(c,f,p+1)]+=v*(1-q);
+   const win=f?1:w,h=v*q;
+   if(c+1>=m)done+=h*win;else nx[idx(c+1,0,0)]+=h*win;
+   if(win<1)nx[idx(c,1,0)]+=h*(1-win);
+  }
+  cur=nx;succ.push(Math.min(1,done));
+ }
+ let exp=0;for(const s of succ)exp+=1-s;
+ const r={succ,worst,exp};cache.set(k,r);return r;
+}
+
+/* ---------- 재화 ---------- */
+const basePulls=()=>(+S.inv.primo+ +S.inv.crystal)/160+ +S.inv.fate;
+function incomeUntil(end){
+ let t=0;if(!end||end<=TODAY)return 0;const days=dayDiff(TODAY,end);
+ for(const s of S.income){
+  if(!s.on)continue;let cnt=0;
+  if(s.per==='daily')cnt=days;
+  else if(s.per==='monthly'){const d=+s.when||1;for(let i=1;i<=days;i++)if(addDays(TODAY,i).getDate()===d)cnt++}
+  else if(s.per==='version'){const a=parse(s.when);if(a){let k=Math.max(0,Math.ceil((dayDiff(a,TODAY)+1)/42));for(;;k++){const x=addDays(a,42*k);if(x>end)break;if(x>TODAY)cnt++}}}
+  else if(s.per==='once'){const a=parse(s.when);if(a&&a>TODAY&&a<=end)cnt=1}
+  t+=cnt*(+s.amt||0)*(s.unit==='f'?1:1/160);
+ }
+ return t;
+}
+
+/* ---------- 플래너 ---------- */
+function plan(){
+ const st={c:{p:+S.pity.c||0,f:!!S.pity.cf},w:{p:+S.pity.w||0,f:!!S.pity.wf}};
+ const w={c:S.radiance?0.55:0.5,w:0.375};
+ let spent=0;const out=[];
+ const bs=S.banners.filter(b=>b.want&&parse(b.end)&&parse(b.end)>=TODAY).sort((a,b)=>parse(a.end)-parse(b.end));
+ for(const b of bs){
+  const end=parse(b.end),t=b.type==='w'?'w':'c',m=Math.max(1,Math.min(7,+b.copies||1));
+  const pity=Math.min(t==='c'?89:79,Math.max(0,st[t].p));
+  const d=dist(t,pity,st[t].f?1:0,m,w[t]);
+  const availF=basePulls()+incomeUntil(end)-spent,avail=Math.max(0,Math.floor(availF));
+  const prob=d.succ[Math.min(avail,d.succ.length-1)];
+  const cost=S.mode==='worst'?d.worst:Math.ceil(d.exp);
+  out.push({b,t,m,pity,flag:st[t].f,avail,prob,exp:Math.ceil(d.exp),worst:d.worst});
+  spent+=Math.min(cost,Math.max(0,availF));st[t]={p:0,f:false};
+ }
+ return out;
+}
+const tone=p=>p>=.999?'var(--ok)':p>=.5?'var(--blue)':p>=.2?'var(--warn)':'var(--bad)';
+const fmtD=s=>{const d=parse(s);return d?(d.getMonth()+1)+'/'+d.getDate():'-'};
+function renderPlan(){
+ const r=plan(),el=document.getElementById('planList');
+ if(!r.length){el.innerHTML='<div class="card empty">아직 계획한 픽업이 없어요. "픽업 일정" 탭에서 배너를 추가하고 "계획 추가"를 체크해 주세요.</div>';return}
+ el.innerHTML=r.map((x,i)=>{
+  const dd=dayDiff(TODAY,parse(x.b.end));
+  const st=x.avail>=x.worst?'최악의 경우(천장)까지 대비 가능해요':x.avail>=x.exp?`평균적으로는 충분해요. 천장까지는 ${fmt((x.worst-x.avail)*160)} 원석이 더 필요해요`:`평균 기준으로 ${fmt((x.exp-x.avail)*160)} 원석이 부족해요`;
+  const goal=x.t==='c'?(x.m===1?'명함':(x.m-1)+'돌'):(x.m+'재련');
+  return `<div class="card pb"><div>
+   <span class="chip ${x.t}">${x.t==='c'?'캐릭터':'무기'}</span><span class="chip">목표 ${goal}</span>
+   <div class="pn">${esc(x.b.name)}</div>
+   <div class="meta">${fmtD(x.b.start)} ~ ${fmtD(x.b.end)} · 종료까지 D-${dd}${i?' · 앞 배너 소비 후':''}</div>
+   <div class="meta">시작 천장 ${x.pity}${x.flag?(x.t==='c'?' · 확정':' · 궤도 1'):''}${i?' (앞 배너 후 초기화 가정)':''} · 평균 ${x.exp}뽑 / 최악 ${x.worst}뽑 필요</div>
+  </div><div>
+   <div class="meta">종료일까지 사용 가능 <b style="color:var(--ink)">${x.avail}뽑</b></div>
+   <div class="prob" style="color:${tone(x.prob)}">${(x.prob*100).toFixed(x.prob>.999||x.prob<.001?0:1)}%</div>
+   <div class="bar"><i style="width:${(x.prob*100).toFixed(1)}%;background:${tone(x.prob)}"></i></div>
+   <div class="status" style="color:${tone(x.prob)}">${st}</div>
+  </div></div>`}).join('');
+}
+
+/* ---------- 상단 요약 + 그래프 ---------- */
+function renderTop(){
+ const b=basePulls();
+ document.getElementById('nowPulls').innerHTML=Math.floor(b)+'<small> 뽑</small>';
+ const next=S.banners.filter(x=>parse(x.end)>=TODAY).sort((a,c)=>parse(a.start)-parse(c.start))[0];
+ const in30=incomeUntil(addDays(TODAY,30));
+ document.getElementById('nowKv').innerHTML=`<span>30일 뒤 <b>${Math.floor(b+in30)}뽑</b></span><span>30일 수입 <b>+${in30.toFixed(1)}뽑</b></span>`+(next?`<span>다음 픽업 <b>${esc(next.name.slice(0,14))}</b> ${fmtD(next.start)}</span>`:'');
+ drawChart();
+}
+const svg=document.getElementById('chart');
+function drawChart(){
+ const W=svg.clientWidth,H=svg.clientHeight;if(!W||!H)return;
+ const ends=S.banners.map(x=>parse(x.end)).filter(d=>d&&d>=TODAY);
+ const span=Math.max(60,...ends.map(d=>dayDiff(TODAY,d)+7));
+ const L=40,R=12,T=16,B=26,step=Math.max(1,Math.ceil(span/60));
+ const pts=[];for(let i=0;i<=span;i+=step)pts.push([i,basePulls()+incomeUntil(addDays(TODAY,i))]);
+ const maxY=Math.max(10,...pts.map(p=>p[1]))*1.1;
+ const x=i=>L+(W-L-R)*i/span,y=v=>T+(H-T-B)*(1-v/maxY);
+ let s='';
+ for(const b of S.banners){const a=parse(b.start),e=parse(b.end);if(!a||!e||e<TODAY)continue;
+  const x1=x(Math.max(0,dayDiff(TODAY,a))),x2=x(Math.min(span,dayDiff(TODAY,e)));
+  s+=`<rect x="${x1}" y="${T}" width="${Math.max(2,x2-x1)}" height="${H-T-B}" fill="${b.type==='w'?'#4a9be0':'#d64f8a'}" opacity="${b.want?.28:.1}" rx="4"/>`;}
+ for(let k=0;k<=3;k++){const v=maxY*k/3;s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#fff" opacity=".1"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" fill="#c9bfe0" font-size="11">${Math.round(v)}</text>`}
+ const ticks=W<520?2:4;for(let k=0;k<=ticks;k++){const i=Math.round(span*k/ticks);s+=`<text x="${x(i)}" y="${H-8}" text-anchor="${k===0?'start':k===ticks?'end':'middle'}" fill="#c9bfe0" font-size="11">${fmtD(ymd(addDays(TODAY,i)))}</text>`}
+ const d=pts.map((p,i)=>(i?'L':'M')+x(p[0]).toFixed(1)+','+y(p[1]).toFixed(1)).join('');
+ s+=`<path d="${d}L${x(pts.at(-1)[0])},${y(0)}L${x(0)},${y(0)}Z" fill="#4a9be0" opacity=".18"/><path d="${d}" fill="none" stroke="#8fc6ff" stroke-width="2.5"/>`;
+ s+=`<text x="${L+6}" y="${T+12}" fill="#e7defa" font-size="12">존버하면 몇 뽑? (분홍=캐릭터 배너, 파랑=무기 배너)</text>`;
+ svg.innerHTML=s;
+}
+const ro=new ResizeObserver(drawChart);ro.observe(svg);
+
+/* ---------- 편집 목록 ---------- */
+const sel=(k,v,opts)=>`<select data-k="${k}">${opts.map(([a,b])=>`<option value="${a}"${a===v?' selected':''}>${b}</option>`).join('')}</select>`;
+function renderBanners(){
+ const el=document.getElementById('bannerList');
+ const bs=[...S.banners].sort((a,b)=>(parse(a.start)||0)-(parse(b.start)||0));
+ el.innerHTML=bs.length?bs.map(b=>`<div class="card item" data-l="banners" data-id="${b.id}">
+  <div><label>배너 이름</label><input data-k="name" value="${esc(b.name)}"></div>
+  <div><label>종류</label>${sel('type',b.type,[['c','캐릭터'],['w','무기']])}</div>
+  <div><label>시작</label><input type="date" data-k="start" value="${esc(b.start)}"></div>
+  <div><label>종료</label><input type="date" data-k="end" value="${esc(b.end)}"></div>
+  <div><label>목표 개수</label><input type="number" min="1" max="7" data-k="copies" value="${+b.copies||1}"></div>
+  <div><label class="chk"><input type="checkbox" data-k="want"${b.want?' checked':''}> 계획 추가</label><button class="x" data-del aria-label="삭제">✕</button></div>
+ </div>`).join(''):'<div class="card empty">등록된 픽업이 없어요.</div>';
+}
+function renderIncome(){
+ document.getElementById('incomeList').innerHTML=S.income.map(s=>`<div class="card item inc" data-l="income" data-id="${s.id}">
+  <div><label class="chk"><input type="checkbox" data-k="on"${s.on?' checked':''} aria-label="사용"></label></div>
+  <div><label>이름</label><input data-k="name" value="${esc(s.name)}"></div>
+  <div><label>양</label><input type="number" min="0" data-k="amt" value="${+s.amt||0}"></div>
+  <div><label>단위</label>${sel('unit',s.unit,[['p','원석'],['f','인연']])}</div>
+  <div><label>주기</label>${sel('per',s.per,[['daily','매일'],['monthly','매월'],['version','버전마다'],['once','한 번']])}</div>
+  <div><label>${s.per==='monthly'?'날짜(일)':s.per==='daily'?'—':'기준일'}</label>${s.per==='monthly'?`<input type="number" min="1" max="31" data-k="when" value="${esc(s.when)}">`:s.per==='daily'?'<input disabled value="매일">':`<input type="date" data-k="when" value="${esc(s.when)}">`}</div>
+  <div><button class="x" data-del aria-label="삭제">✕</button></div>
+ </div>`).join('');
+}
+function renderSpend(){
+ const sp=[...S.spend].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+ document.getElementById('spendList').innerHTML=sp.length?sp.map(s=>`<div class="card item sp" data-l="spend" data-id="${s.id}">
+  <div><label>날짜</label><input type="date" data-k="date" value="${esc(s.date)}"></div>
+  <div><label>항목</label><input data-k="name" value="${esc(s.name)}" placeholder="예: 공월 축복, 창세의 결정 6480"></div>
+  <div><label>금액(원)</label><input type="number" min="0" data-k="won" value="${+s.won||0}"></div>
+  <div><button class="x" data-del aria-label="삭제">✕</button></div></div>`).join(''):'<div class="card empty">아직 과금 기록이 없어요. 무과금 화이팅!</div>';
+ spendSummary();
+}
+function spendSummary(){
+ const by={};for(const s of S.spend){const m=(s.date||'').slice(0,7);if(m)by[m]=(by[m]||0)+(+s.won||0)}
+ const ms=Object.keys(by).sort().slice(-12),mx=Math.max(1,...ms.map(m=>by[m]));
+ const tot=S.spend.reduce((a,s)=>a+(+s.won||0),0),cur=by[ymd(TODAY).slice(0,7)]||0;
+ document.getElementById('spendSum').textContent=`이번 달 ${fmt(cur)}원 · 전체 ${fmt(tot)}원`;
+ document.getElementById('months').innerHTML=ms.length?'<h2 style="font-size:20px;margin-top:20px">월별 합계</h2>'+ms.map(m=>`<div class="mrow"><span>${esc(m)}</span><div class="bar"><i style="width:${by[m]/mx*100}%;background:var(--pink)"></i></div><span class="num">${fmt(by[m])}원</span></div>`).join(''):'';
+}
+
+/* ---------- 바인딩 ---------- */
+const getP=p=>p.split('.').reduce((o,k)=>o[k],S);
+const setP=(p,v)=>{const ks=p.split('.');const l=ks.pop();ks.reduce((o,k)=>o[k],S)[l]=v};
+function fillInputs(){for(const i of document.querySelectorAll('[data-s]')){const v=getP(i.dataset.s);if(i.type==='checkbox')i.checked=!!v;else i.value=v}}
+document.addEventListener('input',e=>{
+ const t=e.target;
+ if(t.dataset.s){setP(t.dataset.s,t.type==='checkbox'?t.checked:t.type==='number'?Math.max(0,+t.value||0):t.value);save();renderPlan();renderTop();return}
+ const row=t.closest('[data-l]');if(!row||!t.dataset.k)return;
+ const o=S[row.dataset.l].find(x=>x.id===row.dataset.id);if(!o)return;
+ o[t.dataset.k]=t.type==='checkbox'?t.checked:t.type==='number'?+t.value:t.value;
+ save();renderPlan();renderTop();if(row.dataset.l==='spend')spendSummary();
+});
+document.addEventListener('change',e=>{const t=e.target;const row=t.closest('[data-l]');
+ if(row&&(t.dataset.k==='per'||t.type==='date'||t.dataset.k==='type')){if(row.dataset.l==='income'&&t.dataset.k==='per'){const o=S.income.find(x=>x.id===row.dataset.id);o.when=o.per==='monthly'?'1':ymd(TODAY);save()}renderAll()}});
+document.addEventListener('click',e=>{
+ const d=e.target.closest('[data-del]');if(d){const row=d.closest('[data-l]');S[row.dataset.l]=S[row.dataset.l].filter(x=>x.id!==row.dataset.id);save();renderAll();return}
+});
+document.getElementById('addBanner').onclick=()=>{S.banners.push({id:uid(),name:'새 픽업',type:'c',start:ymd(TODAY),end:ymd(addDays(TODAY,21)),copies:1,want:true});save();renderAll()};
+document.getElementById('addIncome').onclick=()=>{S.income.push({id:uid(),on:true,name:'새 수입',amt:0,unit:'p',per:'once',when:ymd(TODAY)});save();renderAll()};
+document.getElementById('addSpend').onclick=()=>{S.spend.push({id:uid(),date:ymd(TODAY),name:'',won:0});save();renderAll()};
+const bk=document.getElementById('bk'),msg=t=>document.getElementById('bkMsg').textContent=t;
+document.getElementById('copyBk').onclick=async()=>{bk.value=JSON.stringify(S);try{await navigator.clipboard.writeText(bk.value);msg('복사했어요. 메모장에 붙여넣어 보관하세요.')}catch(e){bk.select();msg('자동 복사가 막혀 있어요. 위 내용을 직접 선택해 복사해 주세요.')}};
+document.getElementById('loadBk').onclick=()=>{try{const v=JSON.parse(bk.value);if(!v.inv||!Array.isArray(v.banners))throw 0;S=Object.assign(DEF(),v);save();cache.clear();renderAll();msg('복원했어요.')}catch(e){msg('내용을 읽을 수 없어요. 복사한 백업 전체를 붙여넣었는지 확인해 주세요.')}};
+let armed=false;document.getElementById('resetAll').onclick=e=>{if(!armed){armed=true;e.target.textContent='한 번 더 누르면 초기화';setTimeout(()=>{armed=false;e.target.textContent='전체 초기화'},3000);return}S=DEF();save();renderAll();msg('초기화했어요.');armed=false;e.target.textContent='전체 초기화'};
+
+function route(){const t=(location.hash||'#plan').slice(1);const ok=['plan','banners','income','spend','backup'].includes(t)?t:'plan';
+ for(const s of document.querySelectorAll('section'))s.classList.toggle('on',s.id==='s-'+ok);
+ for(const a of document.querySelectorAll('nav a'))a.classList.toggle('on',a.dataset.t===ok);
+ if(ok==='backup')bk.value=JSON.stringify(S);}
+window.addEventListener('hashchange',route);
+function renderAll(){fillInputs();renderBanners();renderIncome();renderSpend();renderPlan();renderTop()}
+renderAll();route();
+}
+</script>
+</body>
+</html>
